@@ -18,8 +18,6 @@ public class User {
     private String email;
     private String password;
 
-    // Constructor
-
     // Constructores
 
     public User() {}
