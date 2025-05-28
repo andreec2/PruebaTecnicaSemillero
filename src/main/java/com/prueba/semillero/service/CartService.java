@@ -33,31 +33,48 @@
 
         // Agregar producto al carrito
         public Cart addProductToCart(String userEmail, CartItem item) {
+            // 1. Verificar que el producto existe
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
+            // 2. Verificar stock suficiente
             if (item.getCantidad() > product.getStock()) {
                 throw new RuntimeException("No hay suficiente stock para el producto: " + product.getNombre());
             }
 
+            // 3. Obtener o crear carrito del usuario
             Cart cart = getOrCreateCart(userEmail);
             List<CartItem> items = cart.getItems();
 
+            // 4. Buscar si el producto ya está en el carrito
             Optional<CartItem> existente = items.stream()
                     .filter(i -> i.getProductId().equals(item.getProductId()))
                     .findFirst();
 
             if (existente.isPresent()) {
-                int nuevaCantidad = existente.get().getCantidad() + item.getCantidad();
+                CartItem existenteItem = existente.get();
+                int nuevaCantidad = existenteItem.getCantidad() + item.getCantidad();
+
                 if (nuevaCantidad > product.getStock()) {
-                    throw new RuntimeException("Supera el stock disponible");
+                    throw new RuntimeException("Supera el stock disponible para: " + product.getNombre());
                 }
-                existente.get().setCantidad(nuevaCantidad);
+
+                existenteItem.setCantidad(nuevaCantidad);
+                existenteItem.setNombre(product.getNombre());
+                existenteItem.setPrecioUnitario(product.getPrecio()/*nuevaCantidad*/);
+
             } else {
-                items.add(new CartItem(item.getProductId(), item.getCantidad()));
+                CartItem nuevo = new CartItem();
+                nuevo.setProductId(product.getId());
+                nuevo.setNombre(product.getNombre());
+                nuevo.setCantidad(item.getCantidad());
+                nuevo.setPrecioUnitario(product.getPrecio());
+
+                items.add(nuevo);
             }
 
             return cartRepository.save(cart);
+
         }
 
         // Eliminar producto del carrito

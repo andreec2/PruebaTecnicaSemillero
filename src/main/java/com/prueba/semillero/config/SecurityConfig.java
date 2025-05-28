@@ -24,7 +24,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/api/products/**").permitAll() // registro y login sin token
+                        .requestMatchers("/auth/**", "/api/products/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll() // registro y login sin token
                         .anyRequest().authenticated() // todo lo demás necesita JWT
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -10,13 +10,17 @@ import lombok.Setter;
 public class CartItem {
     private String productId;
     private int cantidad;
+    private String nombre;
+    private double precioUnitario;
 
     public CartItem() {
     }
 
-    public CartItem(String productId, int cantidad) {
+    public CartItem(String productId, int cantidad, String nombre, double precioUnitario) {
         this.productId = productId;
         this.cantidad = cantidad;
+        this.nombre = nombre;
+        this.precioUnitario = precioUnitario;
     }
 
 // Getters y setters
