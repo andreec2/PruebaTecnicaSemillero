@@ -3,6 +3,7 @@ package com.prueba.semillero.controller;
 import com.prueba.semillero.model.Cart;
 import com.prueba.semillero.model.CartItem;
 import com.prueba.semillero.service.CartService;
+import com.prueba.semillero.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +14,11 @@ import java.util.List;
 @CrossOrigin
 public class CartController {
     private final CartService cartService;
+    private final OrderService orderService;
 
-    public CartController(CartService cartService) {
+    public CartController(CartService cartService, OrderService orderService) {
         this.cartService = cartService;
+        this.orderService = orderService;
     }
 
     // Obtener el carrito del usuario
@@ -38,10 +41,13 @@ public class CartController {
         return ResponseEntity.ok(updatedCart);
     }
 
-    // Finalizar pedido (opcional)
     @PostMapping("/{email}/checkout")
     public ResponseEntity<String> checkout(@PathVariable String email) {
-        cartService.checkoutCart(email);
-        return ResponseEntity.ok("Pedido procesado exitosamente.");
+        try {
+            orderService.createOrderFromCart(email);
+            return ResponseEntity.ok("Pedido generado correctamente.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error al procesar el pedido: " + e.getMessage());
+        }
     }
 }
