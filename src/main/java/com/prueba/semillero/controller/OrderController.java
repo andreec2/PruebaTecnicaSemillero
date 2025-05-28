@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -28,5 +29,22 @@ public class OrderController {
     @GetMapping("/{email}")
     public ResponseEntity<List<Order>> getOrders(@PathVariable String email) {
         return ResponseEntity.ok(orderService.getOrdersByUser(email));
+    }
+
+    //Eliminar una orden (para pruebas)
+    @DeleteMapping("/{email}/remove/{orderId}")
+    public ResponseEntity<String> deleteOrder(@PathVariable String email, @PathVariable String orderId) {
+        Optional<Order> optionalOrder = orderService.getOrderById(orderId);
+        if (optionalOrder.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Order order = optionalOrder.get();
+        if (!order.getUserEmail().equals(email)) {
+            return ResponseEntity.status(403).body("No tienes permiso para eliminar esta orden.");
+        }
+
+        orderService.deleteOrderById(orderId);
+        return ResponseEntity.ok("Orden eliminada exitosamente.");
     }
 }

@@ -2,7 +2,9 @@
 
     import com.prueba.semillero.model.Cart;
     import com.prueba.semillero.model.CartItem;
+    import com.prueba.semillero.model.Product;
     import com.prueba.semillero.repository.CartRepository;
+    import com.prueba.semillero.repository.ProductRepository;
     import org.springframework.stereotype.Service;
 
     import java.util.ArrayList;
@@ -13,8 +15,11 @@
     public class CartService {
         private final CartRepository cartRepository;
 
-        public CartService(CartRepository cartRepository) {
+        private final ProductRepository productRepository;
+
+        public CartService(CartRepository cartRepository, ProductRepository productRepository) {
             this.cartRepository = cartRepository;
+            this.productRepository = productRepository;
         }
 
         // Obtener el carrito activo del usuario o crear uno nuevo
@@ -28,6 +33,13 @@
 
         // Agregar producto al carrito
         public Cart addProductToCart(String userEmail, CartItem item) {
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+            if (item.getCantidad() > product.getStock()) {
+                throw new RuntimeException("No hay suficiente stock para el producto: " + product.getNombre());
+            }
+
             Cart cart = getOrCreateCart(userEmail);
             List<CartItem> items = cart.getItems();
 
@@ -36,7 +48,11 @@
                     .findFirst();
 
             if (existente.isPresent()) {
-                existente.get().setCantidad(existente.get().getCantidad() + item.getCantidad());
+                int nuevaCantidad = existente.get().getCantidad() + item.getCantidad();
+                if (nuevaCantidad > product.getStock()) {
+                    throw new RuntimeException("Supera el stock disponible");
+                }
+                existente.get().setCantidad(nuevaCantidad);
             } else {
                 items.add(new CartItem(item.getProductId(), item.getCantidad()));
             }
