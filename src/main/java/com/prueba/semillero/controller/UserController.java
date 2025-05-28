@@ -37,4 +37,5 @@ public class UserController {
     public ResponseEntity<User> createUser(@RequestBody User user) {
         return ResponseEntity.ok(userService.saveUser(user));
     }
+
 }
